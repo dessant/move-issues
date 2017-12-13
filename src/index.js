@@ -4,9 +4,6 @@ const App = require('./move');
 
 module.exports = robot => {
   commands(robot, 'move', async (context, command) => {
-    if (command.name !== 'move') {
-      return;
-    }
     const app = await getApp(context, command);
     await app.command();
   });
