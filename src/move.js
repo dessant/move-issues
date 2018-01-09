@@ -142,11 +142,29 @@ module.exports = class Move {
       return;
     }
 
-    const targetPermission = (await github.repos.reviewUserPermissionLevel({
-      owner: target.owner,
-      repo: target.repo,
-      username: cmdUser
-    })).data.permission;
+    let targetPermission;
+    try {
+      targetPermission = (await github.repos.reviewUserPermissionLevel({
+        owner: target.owner,
+        repo: target.repo,
+        username: cmdUser
+      })).data.permission;
+    } catch (e) {
+      if (e.code === 403) {
+        this.log(`[${sourceUrl}] Commenting: no app permission`, 'warn');
+        if (perform) {
+          await github.issues.createComment({
+            ...source,
+            body:
+              '⚠️ The [GitHub App](https://github.com/apps/move) ' +
+              'must be installed for the target repository.'
+          });
+        }
+        return;
+      }
+      throw e;
+    }
+
     if (!['write', 'admin'].includes(targetPermission)) {
       this.log(`[${sourceUrl}] Commenting: no user permission`, 'warn');
       if (perform) {
@@ -169,31 +187,15 @@ module.exports = class Move {
 
     this.log(`[${sourceUrl}] Moving to ${target.owner}/${target.repo}`);
     if (perform) {
-      try {
-        target.number = (await github.issues.create({
-          owner: target.owner,
-          repo: target.repo,
-          title: sourceIssueData.title,
-          body:
-            `*@${issueAuthor} commented on ${issueCreatedAt} UTC:*\n\n` +
-            `${this.getMarkdown(sourceIssueData.body_html)}\n\n` +
-            `*This issue was moved by @${cmdUser} from ${sourceUrl}.*`
-        })).data.number;
-      } catch (e) {
-        if (e.code === 403) {
-          this.log(`[${sourceUrl}] Commenting: no app permission`, 'warn');
-          if (perform) {
-            await github.issues.createComment({
-              ...source,
-              body:
-                '⚠️ The [GitHub App](https://github.com/apps/move) ' +
-                'must be installed for the target repository.'
-            });
-          }
-          return;
-        }
-        throw e;
-      }
+      target.number = (await github.issues.create({
+        owner: target.owner,
+        repo: target.repo,
+        title: sourceIssueData.title,
+        body:
+          `*@${issueAuthor} commented on ${issueCreatedAt} UTC:*\n\n` +
+          `${this.getMarkdown(sourceIssueData.body_html)}\n\n` +
+          `*This issue was moved by @${cmdUser} from ${sourceUrl}.*`
+      })).data.number;
     }
 
     const targetUrl = `${target.owner}/${target.repo}/issues/${target.number}`;
