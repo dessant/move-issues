@@ -1,7 +1,7 @@
 # Move Issues
 
 Move Issues is a GitHub App built with [Probot](https://github.com/probot/probot)
-that moves issues to a different repository.
+that moves issues between repositories.
 
 <p>
   <img width="420" src="assets/source-issue.png">
@@ -19,13 +19,18 @@ or [Bitcoin](https://goo.gl/uJUAaU).
 ## Usage
 
 1. **[Install the GitHub App](https://github.com/apps/move)**
-2. Create `.github/move.yml` based on the template below
-3. Move an issue by creating a comment with the command: `/move to <repo>`
+   for all source and target repositories
+2. Create `.github/move.yml` in the source repository based on the template below
+3. Move an issue by creating a comment with this command: `/move to <repo>`
+
+Users must have write access to the source and target repositories
+in order to move issues.
 
 #### Configuration
 
-Create `.github/move.yml` in the default branch to enable the app.
-The file can be empty, or it can override any of these default settings:
+Create `.github/move.yml` in the default branch of the source repository
+to enable the app. The file can be empty, or it can override any of these
+default settings:
 
 ```yml
 # Configuration for move-issues - https://github.com/dessant/move-issues
@@ -44,13 +49,13 @@ lockSourceIssue: false
 
 #### Command Syntax
 
-```sh
+```
 /move [to ][<owner>/]<repo>
 ```
 
 ###### Examples:
 
-```sh
+```
 /move to repo
 /move to owner/repo
 /move repo
