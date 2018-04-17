@@ -4,11 +4,12 @@ const toMarkdown = require('to-markdown');
 const defaults = require('./defaults');
 
 module.exports = class Move {
-  constructor(context, config, logger, command) {
+  constructor(robot, context, config, command) {
     this.arguments = command.arguments || '';
     this.context = context;
     this.config = Object.assign({}, defaults, config);
-    this.logger = logger;
+    this.logger = robot.log;
+    this.robot = robot;
   }
 
   log(message, type = 'info') {
@@ -52,7 +53,7 @@ module.exports = class Move {
   }
 
   async command() {
-    const {isBot, payload, github} = this.context;
+    const {isBot, payload, github: sourceGh} = this.context;
     const {
       perform,
       closeSourceIssue,
@@ -71,7 +72,7 @@ module.exports = class Move {
     const cmdCommentId = payload.comment.id;
     const isCmdCommentContent = payload.comment.body.trim().includes('\n');
 
-    const sourcePermission = (await github.repos.reviewUserPermissionLevel({
+    const sourcePermission = (await sourceGh.repos.reviewUserPermissionLevel({
       owner: source.owner,
       repo: source.repo,
       username: cmdUser
@@ -91,7 +92,7 @@ module.exports = class Move {
     if (!target.repo || target.owner.length > 39 || target.repo.length > 100) {
       this.log(`[${sourceUrl}] Commenting: invalid arguments`, 'warn');
       if (perform) {
-        await github.issues.createComment({
+        await sourceGH.issues.createComment({
           ...source,
           body:
             '⚠️ The command arguments are not valid.\n\n' +
@@ -104,7 +105,7 @@ module.exports = class Move {
     if (source.repo === target.repo) {
       this.log(`[${sourceUrl}] Commenting: same source and target`, 'warn');
       if (perform) {
-        await github.issues.createComment({
+        await sourceGH.issues.createComment({
           ...source,
           body: '⚠️ The source and target repository must be different.'
         });
@@ -112,14 +113,48 @@ module.exports = class Move {
       return;
     }
 
+    let targetGh;
+    if (source.owner !== target.owner) {
+      const appGh = await this.robot.auth();
+
+      let [targetInstall] = await appGh.paginate(
+        appGh.apps.getInstallations({per_page: 100}),
+        (response, done) => {
+          for (const installation of response.data) {
+            if (installation.account.login === target.owner) {
+              done();
+              return installation.id;
+            }
+          }
+        }
+      );
+
+      if (!targetInstall) {
+        this.log(`[${sourceUrl}] Commenting: no app permission`, 'warn');
+        if (perform) {
+          await sourceGh.issues.createComment({
+            ...source,
+            body:
+              '⚠️ The [GitHub App](https://github.com/apps/move) ' +
+              'must be installed for the target repository.'
+          });
+        }
+        return;
+      }
+
+      targetGh = await this.robot.auth(targetInstall);
+    } else {
+      targetGh = sourceGh;
+    }
+
     let targetRepoData;
     try {
-      targetRepoData = (await github.repos.get(target)).data;
+      targetRepoData = (await targetGh.repos.get(target)).data;
     } catch (e) {
       if (e.code === 404) {
         this.log(`[${sourceUrl}] Commenting: missing repository`, 'warn');
         if (perform) {
-          await github.issues.createComment({
+          await sourceGh.issues.createComment({
             ...source,
             body: '⚠️ The target repository does not exist.'
           });
@@ -132,7 +167,7 @@ module.exports = class Move {
     if (!targetRepoData.has_issues || targetRepoData.archived) {
       this.log(`[${sourceUrl}] Commenting: issues disabled`, 'warn');
       if (perform) {
-        await github.issues.createComment({
+        await sourceGh.issues.createComment({
           ...source,
           body:
             '⚠️ The target repository must have issues enabled ' +
@@ -144,7 +179,7 @@ module.exports = class Move {
 
     let targetPermission;
     try {
-      targetPermission = (await github.repos.reviewUserPermissionLevel({
+      targetPermission = (await targetGh.repos.reviewUserPermissionLevel({
         owner: target.owner,
         repo: target.repo,
         username: cmdUser
@@ -153,7 +188,7 @@ module.exports = class Move {
       if (e.code === 403) {
         this.log(`[${sourceUrl}] Commenting: no app permission`, 'warn');
         if (perform) {
-          await github.issues.createComment({
+          await sourceGh.issues.createComment({
             ...source,
             body:
               '⚠️ The [GitHub App](https://github.com/apps/move) ' +
@@ -168,7 +203,7 @@ module.exports = class Move {
     if (!['write', 'admin'].includes(targetPermission)) {
       this.log(`[${sourceUrl}] Commenting: no user permission`, 'warn');
       if (perform) {
-        await github.issues.createComment({
+        await sourceGh.issues.createComment({
           ...source,
           body: '⚠️ You must have write permission for the target repository.'
         });
@@ -176,7 +211,7 @@ module.exports = class Move {
       return;
     }
 
-    const sourceIssueData = (await github.issues.get({
+    const sourceIssueData = (await sourceGh.issues.get({
       ...source,
       headers: {accept: 'application/vnd.github.v3.html+json'}
     })).data;
@@ -187,7 +222,7 @@ module.exports = class Move {
 
     this.log(`[${sourceUrl}] Moving to ${target.owner}/${target.repo}`);
     if (perform) {
-      target.number = (await github.issues.create({
+      target.number = (await targetGh.issues.create({
         owner: target.owner,
         repo: target.repo,
         title: sourceIssueData.title,
@@ -200,8 +235,8 @@ module.exports = class Move {
 
     const targetUrl = `${target.owner}/${target.repo}/issues/${target.number}`;
 
-    await github.paginate(
-      github.issues.getComments({
+    await sourceGh.paginate(
+      sourceGh.issues.getComments({
         ...source,
         per_page: 100,
         headers: {accept: 'application/vnd.github.v3.html+json'}
@@ -221,7 +256,7 @@ module.exports = class Move {
               `Moving to ${targetUrl}`
           );
           if (perform) {
-            await github.issues.createComment({
+            await targetGh.issues.createComment({
               ...target,
               body:
                 `*@${commentAuthor} commented on ${createdAt} UTC:*\n\n` +
@@ -237,7 +272,7 @@ module.exports = class Move {
         this.log(`[${sourceUrl}#issuecomment-${cmdCommentId}] Deleting`);
         if (perform) {
           try {
-            await github.issues.deleteComment({
+            await sourceGh.issues.deleteComment({
               owner: source.owner,
               repo: source.repo,
               id: cmdCommentId
@@ -253,7 +288,7 @@ module.exports = class Move {
       this.log(`[${sourceUrl}] Commenting: move completed`);
       if (perform) {
         try {
-          await github.issues.createComment({
+          await sourceGh.issues.createComment({
             ...source,
             body: `This issue was moved by @${cmdUser} to ${targetUrl}.`
           });
@@ -268,7 +303,7 @@ module.exports = class Move {
     if (closeSourceIssue && this.issueOpen) {
       this.log(`[${sourceUrl}] Closing`);
       if (perform) {
-        await github.issues.edit({
+        await sourceGh.issues.edit({
           ...source,
           state: 'closed'
         });
@@ -278,7 +313,7 @@ module.exports = class Move {
     if (lockSourceIssue && !this.issueLocked) {
       this.log(`[${sourceUrl}] Locking`);
       if (perform) {
-        await github.issues.lock(source);
+        await sourceGh.issues.lock(source);
       }
     }
   }
