@@ -4,12 +4,13 @@ const toMarkdown = require('to-markdown');
 const defaults = require('./defaults');
 
 module.exports = class Move {
-  constructor(robot, context, config, command) {
-    this.arguments = command.arguments || '';
+  constructor(robot, context, config, command, appUrl) {
+    this.robot = robot;
     this.context = context;
     this.config = Object.assign({}, defaults, config);
     this.logger = robot.log;
-    this.robot = robot;
+    this.arguments = command.arguments || '';
+    this.appUrl = appUrl;
   }
 
   log(message, type = 'info') {
@@ -135,7 +136,7 @@ module.exports = class Move {
           await sourceGh.issues.createComment({
             ...source,
             body:
-              '⚠️ The [GitHub App](https://github.com/apps/move) ' +
+              `⚠️ The [GitHub App](${this.appUrl}) ` +
               'must be installed for the target repository.'
           });
         }
@@ -191,7 +192,7 @@ module.exports = class Move {
           await sourceGh.issues.createComment({
             ...source,
             body:
-              '⚠️ The [GitHub App](https://github.com/apps/move) ' +
+              `⚠️ The [GitHub App](${this.appUrl}) ` +
               'must be installed for the target repository.'
           });
         }

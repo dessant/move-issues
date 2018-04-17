@@ -2,7 +2,10 @@ const commands = require('probot-commands');
 
 const App = require('./move');
 
-module.exports = robot => {
+module.exports = async robot => {
+  const github = await robot.auth();
+  const appUrl = (await github.apps.get({})).data.html_url;
+
   commands(robot, 'move', async (context, command) => {
     const app = await getApp(robot, context, command);
     await app.command();
@@ -14,6 +17,6 @@ module.exports = robot => {
       config = {perform: false};
     }
 
-    return new App(robot, context, config, command);
+    return new App(robot, context, config, command, appUrl);
   }
 };
