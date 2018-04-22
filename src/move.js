@@ -20,6 +20,17 @@ module.exports = class Move {
     this.logger[type](message);
   }
 
+  getAuthorMention(user) {
+    const baseUrl = 'https://github.com';
+    if (user.endsWith('[bot]')) {
+      return `[${user}](${baseUrl}/apps/${user.replace('[bot]', '')})`;
+    }
+    if (this.config.mentionAuthors) {
+      return `@${user}`;
+    }
+    return `[${user}](${baseUrl}/${user})`;
+  }
+
   get issueOpen() {
     return this.context.payload.issue.state === 'open';
   }
@@ -75,7 +86,6 @@ module.exports = class Move {
     const {isBot, payload, github: sourceGh} = this.context;
     const {
       perform,
-      mentionAuthors,
       closeSourceIssue,
       lockSourceIssue,
       deleteCommand,
@@ -240,17 +250,11 @@ module.exports = class Move {
       'MMM D, YYYY, h:mm A'
     );
 
-    let cmdAuthorMention = `@${cmdUser}`;
-    if (!mentionAuthors) {
-      cmdAuthorMention = `[${cmdUser}](https://github.com/${cmdUser})`;
-    }
+    const cmdAuthorMention = this.getAuthorMention(cmdUser);
 
     this.log(`[${sourceUrl}] Moving to ${target.owner}/${target.repo}`);
     if (perform) {
-      let issueAuthorMention = `@${issueAuthor}`;
-      if (!mentionAuthors) {
-        issueAuthorMention = `[${issueAuthor}](https://github.com/${issueAuthor})`;
-      }
+      const issueAuthorMention = this.getAuthorMention(issueAuthor);
       target.number = (await targetGh.issues.create({
         owner: target.owner,
         repo: target.repo,
@@ -285,10 +289,7 @@ module.exports = class Move {
               `Moving to ${targetUrl}`
           );
           if (perform) {
-            let commentAuthorMention = `@${commentAuthor}`;
-            if (!mentionAuthors) {
-              commentAuthorMention = `[${commentAuthor}](https://github.com/${commentAuthor})`;
-            }
+            const commentAuthorMention = this.getAuthorMention(commentAuthor);
             await targetGh.issues.createComment({
               ...target,
               body:
