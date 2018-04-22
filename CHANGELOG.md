@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.2.0"></a>
+# [0.2.0](https://github.com/dessant/move-issues/compare/v0.1.3...v0.2.0) (2018-04-22)
+
+
+### Bug Fixes
+
+* link to app page when author is a bot ([49cf4e7](https://github.com/dessant/move-issues/commit/49cf4e7))
+
+
+### Features
+
+* add config options for controlling mentions ([d561ee2](https://github.com/dessant/move-issues/commit/d561ee2)), closes [#1](https://github.com/dessant/move-issues/issues/1)
+
+
+
 <a name="0.1.3"></a>
 ## [0.1.3](https://github.com/dessant/move-issues/compare/v0.1.2...v0.1.3) (2018-04-17)
 
