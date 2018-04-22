@@ -26,6 +26,10 @@ deleteCommand: true
 closeSourceIssue: true
 # Lock the source issue after moving
 lockSourceIssue: false
+# Mention issue, comment and command authors
+mentionAuthors: true
+# Preserve mentions in the issue content
+keepContentMentions: false
 # Set custom aliases for targets
 # aliases:
 #   r: repo

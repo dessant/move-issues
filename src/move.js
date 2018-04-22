@@ -30,26 +30,44 @@ module.exports = class Move {
 
   getMarkdown(html) {
     const highlightRx = /highlight highlight-(\S+)/;
+    const converters = [
+      {
+        filter: function(node) {
+          return (
+            node.nodeName === 'PRE' &&
+            node.parentNode.nodeName === 'DIV' &&
+            highlightRx.test(node.parentNode.className)
+          );
+        },
+        replacement: function(content, node) {
+          const language = node.parentNode.className.match(highlightRx)[1];
+          return (
+            `\n\n\`\`\`${language.replace('source-', '')}\n` +
+            `${node.textContent}\n\`\`\`\n\n`
+          );
+        }
+      },
+      {
+        filter: function(node) {
+          return (
+            node.nodeName === 'A' &&
+            /(?:user|team)-mention/.test(node.className)
+          );
+        },
+        replacement: (content, node) => {
+          if (
+            this.config.keepContentMentions &&
+            /user-mention/.test(node.className)
+          ) {
+            return content;
+          }
+          return `[${content.replace(/^@/, '')}](${node.href})`;
+        }
+      }
+    ];
     return toMarkdown(html, {
       gfm: true,
-      converters: [
-        {
-          filter: function(node) {
-            return (
-              node.nodeName === 'PRE' &&
-              node.parentNode.nodeName === 'DIV' &&
-              highlightRx.test(node.parentNode.className)
-            );
-          },
-          replacement: function(content, node) {
-            const language = node.parentNode.className.match(highlightRx)[1];
-            return (
-              `\n\n\`\`\`${language.replace('source-', '')}\n` +
-              `${node.textContent}\n\`\`\`\n\n`
-            );
-          }
-        }
-      ]
+      converters
     });
   }
 
@@ -57,6 +75,7 @@ module.exports = class Move {
     const {isBot, payload, github: sourceGh} = this.context;
     const {
       perform,
+      mentionAuthors,
       closeSourceIssue,
       lockSourceIssue,
       deleteCommand,
@@ -221,16 +240,25 @@ module.exports = class Move {
       'MMM D, YYYY, h:mm A'
     );
 
+    let cmdAuthorMention = `@${cmdUser}`;
+    if (!mentionAuthors) {
+      cmdAuthorMention = `[${cmdUser}](https://github.com/${cmdUser})`;
+    }
+
     this.log(`[${sourceUrl}] Moving to ${target.owner}/${target.repo}`);
     if (perform) {
+      let issueAuthorMention = `@${issueAuthor}`;
+      if (!mentionAuthors) {
+        issueAuthorMention = `[${issueAuthor}](https://github.com/${issueAuthor})`;
+      }
       target.number = (await targetGh.issues.create({
         owner: target.owner,
         repo: target.repo,
         title: sourceIssueData.title,
         body:
-          `*@${issueAuthor} commented on ${issueCreatedAt} UTC:*\n\n` +
+          `*${issueAuthorMention} commented on ${issueCreatedAt} UTC:*\n\n` +
           `${this.getMarkdown(sourceIssueData.body_html)}\n\n` +
-          `*This issue was moved by @${cmdUser} from ${sourceUrl}.*`
+          `*This issue was moved by ${cmdAuthorMention} from ${sourceUrl}.*`
       })).data.number;
     }
 
@@ -257,10 +285,14 @@ module.exports = class Move {
               `Moving to ${targetUrl}`
           );
           if (perform) {
+            let commentAuthorMention = `@${commentAuthor}`;
+            if (!mentionAuthors) {
+              commentAuthorMention = `[${commentAuthor}](https://github.com/${commentAuthor})`;
+            }
             await targetGh.issues.createComment({
               ...target,
               body:
-                `*@${commentAuthor} commented on ${createdAt} UTC:*\n\n` +
+                `*${commentAuthorMention} commented on ${createdAt} UTC:*\n\n` +
                 this.getMarkdown(comment.body_html)
             });
           }
@@ -291,7 +323,7 @@ module.exports = class Move {
         try {
           await sourceGh.issues.createComment({
             ...source,
-            body: `This issue was moved by @${cmdUser} to ${targetUrl}.`
+            body: `This issue was moved by ${cmdAuthorMention} to ${targetUrl}.`
           });
         } catch (e) {
           if (e.code !== 403) {

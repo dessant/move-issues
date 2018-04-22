@@ -3,5 +3,7 @@ module.exports = {
   deleteCommand: true,
   closeSourceIssue: true,
   lockSourceIssue: false,
+  mentionAuthors: true,
+  keepContentMentions: false,
   aliases: {}
 };
