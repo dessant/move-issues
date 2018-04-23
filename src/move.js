@@ -20,12 +20,12 @@ module.exports = class Move {
     this.logger[type](message);
   }
 
-  getAuthorMention(user) {
+  getAuthorMention(user, mention = false) {
     const baseUrl = 'https://github.com';
     if (user.endsWith('[bot]')) {
       return `[${user}](${baseUrl}/apps/${user.replace('[bot]', '')})`;
     }
-    if (this.config.mentionAuthors) {
+    if (mention) {
       return `@${user}`;
     }
     return `[${user}](${baseUrl}/${user})`;
@@ -89,6 +89,7 @@ module.exports = class Move {
       closeSourceIssue,
       lockSourceIssue,
       deleteCommand,
+      mentionAuthors,
       aliases
     } = this.config;
 
@@ -254,7 +255,10 @@ module.exports = class Move {
 
     this.log(`[${sourceUrl}] Moving to ${target.owner}/${target.repo}`);
     if (perform) {
-      const issueAuthorMention = this.getAuthorMention(issueAuthor);
+      const issueAuthorMention = this.getAuthorMention(
+        issueAuthor,
+        mentionAuthors
+      );
       target.number = (await targetGh.issues.create({
         owner: target.owner,
         repo: target.repo,
@@ -289,7 +293,10 @@ module.exports = class Move {
               `Moving to ${targetUrl}`
           );
           if (perform) {
-            const commentAuthorMention = this.getAuthorMention(commentAuthor);
+            const commentAuthorMention = this.getAuthorMention(
+              commentAuthor,
+              mentionAuthors
+            );
             await targetGh.issues.createComment({
               ...target,
               body:
