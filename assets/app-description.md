@@ -20,16 +20,21 @@ Create `.github/move.yml` in the default branch of the source repository to enab
 ```yml
 # Configuration for move-issues - https://github.com/dessant/move-issues
 
-# Delete the command comment. Ignored when the comment also contains other content
+# Delete the command comment when it contains no other content
 deleteCommand: true
+
 # Close the source issue after moving
 closeSourceIssue: true
+
 # Lock the source issue after moving
 lockSourceIssue: false
+
 # Mention issue and comment authors
 mentionAuthors: true
+
 # Preserve mentions in the issue content
 keepContentMentions: false
+
 # Set custom aliases for targets
 # aliases:
 #   r: repo

@@ -1,13 +1,11 @@
 const moment = require('moment');
 const toMarkdown = require('to-markdown');
 
-const defaults = require('./defaults');
-
 module.exports = class Move {
   constructor(robot, context, config, command, appUrl) {
     this.robot = robot;
     this.context = context;
-    this.config = Object.assign({}, defaults, config);
+    this.config = config;
     this.logger = robot.log;
     this.arguments = command.arguments || '';
     this.appUrl = appUrl;
