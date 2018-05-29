@@ -4,7 +4,7 @@
   "description": "A GitHub App built with Probot that moves issues between repositories.",
   "author": "Armin Sebastian",
   "license": "MIT",
-  "main": "./lib",
+  "main": "./src",
   "repository": "https://github.com/dessant/move-issues",
   "scripts": {
     "start": "probot run ./src/index.js",
