@@ -17,7 +17,7 @@ Users must have write access to the source and target repositories in order to m
 
 Create `.github/move.yml` in the default branch of the source repository to enable the app. The file can be empty, or it can override any of these default settings:
 
-```yml
+```yaml
 # Configuration for move-issues - https://github.com/dessant/move-issues
 
 # Delete the command comment when it contains no other content

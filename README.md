@@ -4,8 +4,8 @@ Move Issues is a GitHub App built with [Probot](https://github.com/probot/probot
 that moves issues between repositories.
 
 <p>
-  <img width="420" src="assets/source-issue.png">
-  <img width="420" src="assets/target-issue.png">
+  <img width="420" src="https://raw.githubusercontent.com/dessant/move-issues/master/assets/source-issue.png">
+  <img width="420" src="https://raw.githubusercontent.com/dessant/move-issues/master/assets/target-issue.png">
 </p>
 
 ## Supporting the Project
@@ -32,7 +32,7 @@ Create `.github/move.yml` in the default branch of the source repository
 to enable the app. The file can be empty, or it can override any of these
 default settings:
 
-```yml
+```yaml
 # Configuration for move-issues - https://github.com/dessant/move-issues
 
 # Delete the command comment when it contains no other content
