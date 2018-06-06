@@ -1,6 +1,6 @@
 {
   "name": "move-issues",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "A GitHub App built with Probot that moves issues between repositories.",
   "author": "Armin Sebastian",
   "license": "MIT",

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.3.3"></a>
+## [0.3.3](https://github.com/dessant/move-issues/compare/v0.3.2...v0.3.3) (2018-06-06)
+
+
+### Bug Fixes
+
+* relax target repo access restrictions ([2a48466](https://github.com/dessant/move-issues/commit/2a48466)), closes [#3](https://github.com/dessant/move-issues/issues/3)
+
+
+
 <a name="0.3.2"></a>
 ## [0.3.2](https://github.com/dessant/move-issues/compare/v0.3.1...v0.3.2) (2018-06-01)
 
