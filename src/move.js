@@ -121,7 +121,7 @@ module.exports = class Move {
     if (!target.repo || target.owner.length > 39 || target.repo.length > 100) {
       this.log(`[${sourceUrl}] Commenting: invalid arguments`, 'warn');
       if (perform) {
-        await sourceGH.issues.createComment({
+        await sourceGh.issues.createComment({
           ...source,
           body:
             '⚠️ The command arguments are not valid.\n\n' +
