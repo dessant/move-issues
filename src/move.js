@@ -229,7 +229,10 @@ module.exports = class Move {
       throw e;
     }
 
-    if (!['write', 'admin'].includes(targetPermission)) {
+    if (
+      (source.owner !== target.owner || targetRepoData.private) &&
+      !['write', 'admin'].includes(targetPermission)
+    ) {
       this.log(`[${sourceUrl}] Commenting: no user permission`, 'warn');
       if (perform) {
         await sourceGh.issues.createComment({
