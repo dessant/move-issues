@@ -9,6 +9,9 @@ module.exports = async robot => {
   const appUrl = (await github.apps.get({})).data.html_url;
 
   commands(robot, 'move', async (context, command) => {
+    if (context.isBot || context.payload.issue.pull_request) {
+      return;
+    }
     const app = await getApp(context, command);
     if (app) {
       await app.command();

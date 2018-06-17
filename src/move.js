@@ -75,7 +75,7 @@ module.exports = class Move {
   }
 
   async command() {
-    const {isBot, payload, github: sourceGh} = this.context;
+    const {payload, github: sourceGh} = this.context;
     const {
       perform,
       closeSourceIssue,
@@ -84,10 +84,6 @@ module.exports = class Move {
       mentionAuthors,
       aliases
     } = this.config;
-
-    if (isBot || payload.issue.pull_request) {
-      return;
-    }
 
     const meta = {task: uuidV4(), perform};
     const source = this.context.issue();
