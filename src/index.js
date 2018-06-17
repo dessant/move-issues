@@ -1,4 +1,5 @@
 const commands = require('probot-commands');
+const getMergedConfig = require('probot-config');
 
 const App = require('./move');
 const schema = require('./schema');
@@ -25,7 +26,7 @@ module.exports = async robot => {
     const {owner, repo} = context.issue();
     let config;
     try {
-      let repoConfig = await context.config('move.yml');
+      let repoConfig = await getMergedConfig(context, 'move.yml');
       if (!repoConfig) {
         repoConfig = {perform: false};
       }

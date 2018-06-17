@@ -2096,6 +2096,13 @@ joi@^13.3.0:
     isemail "3.x.x"
     topo "3.x.x"
 
+js-yaml@^3.10.0:
+  version "3.12.0"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.12.0.tgz#eaed656ec8344f10f527c6bfa1b6e2244de167d1"
+  dependencies:
+    argparse "^1.0.7"
+    esprima "^4.0.0"
+
 js-yaml@^3.6.1:
   version "3.11.0"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.11.0.tgz#597c1a8bd57152f26d622ce4117851a51f5ebaef"
@@ -3187,6 +3194,12 @@ prepend-http@^1.0.1:
 probot-commands@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/probot-commands/-/probot-commands-1.0.1.tgz#62f0cfd8bea3c2688de0c61104b551d3e195892e"
+
+probot-config@^0.1.0:
+  version "0.1.0"
+  resolved "https://registry.yarnpkg.com/probot-config/-/probot-config-0.1.0.tgz#b6ef11ccc468e7f28e06deb68b34e093b7c7e88e"
+  dependencies:
+    js-yaml "^3.10.0"
 
 probot@^6.2.0:
   version "6.2.0"

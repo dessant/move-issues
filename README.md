@@ -57,6 +57,9 @@ keepContentMentions: false
 # aliases:
 #   r: repo
 #   or: owner/repo
+
+# Repository to extend settings from
+# _extends: repo
 ```
 
 #### Command Syntax

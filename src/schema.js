@@ -28,6 +28,8 @@ const schema = Joi.object().keys({
     .default({})
     .description('Set custom aliases for targets'),
 
+  _extends: Joi.string().description('Repository to extend settings from'),
+
   perform: Joi.boolean().default(!process.env.DRY_RUN)
 });
 
