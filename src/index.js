@@ -23,7 +23,6 @@ module.exports = async robot => {
   }
 
   async function getConfig(context) {
-    const {owner, repo} = context.issue();
     let config;
     try {
       let repoConfig = await getMergedConfig(context, 'move.yml');
@@ -36,7 +35,10 @@ module.exports = async robot => {
       }
       config = value;
     } catch (err) {
-      robot.log.warn({err: new Error(err), owner, repo}, 'Invalid config');
+      robot.log.warn(
+        {err: new Error(err), ...context.repo()},
+        'Invalid config'
+      );
     }
 
     return config;

@@ -1,21 +1,15 @@
 const moment = require('moment');
 const toMarkdown = require('to-markdown');
+const uuidV4 = require('uuid/v4');
 
 module.exports = class Move {
   constructor(robot, context, config, command, appUrl) {
     this.robot = robot;
     this.context = context;
     this.config = config;
-    this.logger = robot.log;
+    this.log = robot.log;
     this.arguments = command.arguments || '';
     this.appUrl = appUrl;
-  }
-
-  log(message, type = 'info') {
-    if (!this.config.perform) {
-      message += ' (dry run)';
-    }
-    this.logger[type](message);
   }
 
   getAuthorMention(user, mention = false) {
@@ -91,15 +85,26 @@ module.exports = class Move {
       aliases
     } = this.config;
 
-    if (isBot || payload.issue.hasOwnProperty('pull_request')) {
+    if (isBot || payload.issue.pull_request) {
       return;
     }
 
+    const meta = {task: uuidV4(), perform};
     const source = this.context.issue();
-    const sourceUrl = `${source.owner}/${source.repo}/issues/${source.number}`;
     const cmdUser = payload.comment.user.login;
     const cmdCommentId = payload.comment.id;
     const isCmdCommentContent = payload.comment.body.trim().includes('\n');
+
+    this.log.info(
+      {
+        ...meta,
+        source,
+        cmdUser,
+        cmdCommentId,
+        arguments: this.arguments.substring(0, 200)
+      },
+      'Command received'
+    );
 
     const sourcePermission = (await sourceGh.repos.reviewUserPermissionLevel({
       owner: source.owner,
@@ -107,6 +112,13 @@ module.exports = class Move {
       username: cmdUser
     })).data.permission;
     if (!['write', 'admin'].includes(sourcePermission)) {
+      this.log.warn({...meta, source, cmdUser}, 'No user permission to source');
+      if (perform) {
+        await sourceGh.issues.createComment({
+          ...source,
+          body: '⚠️ You must have write permission for the source repository.'
+        });
+      }
       return;
     }
 
@@ -119,7 +131,17 @@ module.exports = class Move {
     target.owner = targetArgs.length ? targetArgs[0].trim() : source.owner;
 
     if (!target.repo || target.owner.length > 39 || target.repo.length > 100) {
-      this.log(`[${sourceUrl}] Commenting: invalid arguments`, 'warn');
+      this.log.warn(
+        {
+          ...meta,
+          source,
+          target,
+          cmdUser,
+          cmdCommentId,
+          arguments: this.arguments.substring(0, 200)
+        },
+        'Invalid command arguments'
+      );
       if (perform) {
         await sourceGh.issues.createComment({
           ...source,
@@ -132,7 +154,7 @@ module.exports = class Move {
     }
 
     if (source.repo === target.repo) {
-      this.log(`[${sourceUrl}] Commenting: same source and target`, 'warn');
+      this.log.warn({...meta, source, target}, 'Same source and target');
       if (perform) {
         await sourceGH.issues.createComment({
           ...source,
@@ -159,7 +181,7 @@ module.exports = class Move {
       );
 
       if (!targetInstall) {
-        this.log(`[${sourceUrl}] Commenting: no app permission`, 'warn');
+        this.log.warn({...meta, target}, 'No app permission to target');
         if (perform) {
           await sourceGh.issues.createComment({
             ...source,
@@ -181,7 +203,7 @@ module.exports = class Move {
       targetRepoData = (await targetGh.repos.get(target)).data;
     } catch (e) {
       if (e.code === 404) {
-        this.log(`[${sourceUrl}] Commenting: missing repository`, 'warn');
+        this.log.warn({...meta, target}, 'Missing target');
         if (perform) {
           await sourceGh.issues.createComment({
             ...source,
@@ -194,7 +216,7 @@ module.exports = class Move {
     }
 
     if (!targetRepoData.has_issues || targetRepoData.archived) {
-      this.log(`[${sourceUrl}] Commenting: issues disabled`, 'warn');
+      this.log.warn({...meta, target}, 'Issues disabled for target');
       if (perform) {
         await sourceGh.issues.createComment({
           ...source,
@@ -215,7 +237,7 @@ module.exports = class Move {
       })).data.permission;
     } catch (e) {
       if (e.code === 403) {
-        this.log(`[${sourceUrl}] Commenting: no app permission`, 'warn');
+        this.log.warn({...meta, target}, 'No app permission to target');
         if (perform) {
           await sourceGh.issues.createComment({
             ...source,
@@ -233,7 +255,7 @@ module.exports = class Move {
       (source.owner !== target.owner || targetRepoData.private) &&
       !['write', 'admin'].includes(targetPermission)
     ) {
-      this.log(`[${sourceUrl}] Commenting: no user permission`, 'warn');
+      this.log.warn({...meta, target, cmdUser}, 'No user permission to target');
       if (perform) {
         await sourceGh.issues.createComment({
           ...source,
@@ -254,7 +276,7 @@ module.exports = class Move {
 
     const cmdAuthorMention = this.getAuthorMention(cmdUser);
 
-    this.log(`[${sourceUrl}] Moving to ${target.owner}/${target.repo}`);
+    this.log.info({...meta, source, target}, 'Moving issue');
     if (perform) {
       const issueAuthorMention = this.getAuthorMention(
         issueAuthor,
@@ -267,11 +289,11 @@ module.exports = class Move {
         body:
           `*${issueAuthorMention} commented on ${issueCreatedAt} UTC:*\n\n` +
           `${this.getMarkdown(sourceIssueData.body_html)}\n\n` +
-          `*This issue was moved by ${cmdAuthorMention} from ${sourceUrl}.*`
+          `*This issue was moved by ${cmdAuthorMention} from ` +
+          `${source.owner}/${source.repo}/issues/${source.number}.*`
       })).data.number;
     }
-
-    const targetUrl = `${target.owner}/${target.repo}/issues/${target.number}`;
+    this.log.info({...meta, target}, 'Issue created');
 
     await sourceGh.paginate(
       sourceGh.issues.getComments({
@@ -289,29 +311,46 @@ module.exports = class Move {
             'MMM D, YYYY, h:mm A'
           );
 
-          this.log(
-            `[${sourceUrl}#issuecomment-${comment.id}] ` +
-              `Moving to ${targetUrl}`
+          this.log.info(
+            {
+              ...meta,
+              source,
+              target,
+              sourceCommentId: comment.id
+            },
+            'Moving comment'
           );
+
+          let targetCommentId;
           if (perform) {
             const commentAuthorMention = this.getAuthorMention(
               commentAuthor,
               mentionAuthors
             );
-            await targetGh.issues.createComment({
+            targetCommentId = (await targetGh.issues.createComment({
               ...target,
               body:
                 `*${commentAuthorMention} commented on ${createdAt} UTC:*\n\n` +
                 this.getMarkdown(comment.body_html)
-            });
+            })).data.id;
           }
+          this.log.info(
+            {
+              ...meta,
+              source,
+              target,
+              sourceCommentId: comment.id,
+              targetCommentId
+            },
+            'Comment created'
+          );
         }
       }
     );
 
     if (!this.issueLocked) {
       if (deleteCommand && !isCmdCommentContent) {
-        this.log(`[${sourceUrl}#issuecomment-${cmdCommentId}] Deleting`);
+        this.log.info({...meta, source, cmdCommentId}, 'Deleting command');
         if (perform) {
           try {
             await sourceGh.issues.deleteComment({
@@ -327,12 +366,14 @@ module.exports = class Move {
         }
       }
 
-      this.log(`[${sourceUrl}] Commenting: move completed`);
+      this.log.info({...meta, source, target}, 'Move completed');
       if (perform) {
         try {
           await sourceGh.issues.createComment({
             ...source,
-            body: `This issue was moved by ${cmdAuthorMention} to ${targetUrl}.`
+            body:
+              `This issue was moved by ${cmdAuthorMention} to ` +
+              `${target.owner}/${target.repo}/issues/${target.number}.`
           });
         } catch (e) {
           if (e.code !== 403) {
@@ -343,17 +384,14 @@ module.exports = class Move {
     }
 
     if (closeSourceIssue && this.issueOpen) {
-      this.log(`[${sourceUrl}] Closing`);
+      this.log.info({...meta, source}, 'Closing');
       if (perform) {
-        await sourceGh.issues.edit({
-          ...source,
-          state: 'closed'
-        });
+        await sourceGh.issues.edit({...source, state: 'closed'});
       }
     }
 
     if (lockSourceIssue && !this.issueLocked) {
-      this.log(`[${sourceUrl}] Locking`);
+      this.log.info({...meta, source}, 'Locking');
       if (perform) {
         await sourceGh.issues.lock(source);
       }
