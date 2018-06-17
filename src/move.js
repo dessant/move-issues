@@ -153,7 +153,7 @@ module.exports = class Move {
       return;
     }
 
-    if (source.repo === target.repo) {
+    if (source.owner === target.owner && source.repo === target.repo) {
       this.log.warn({...meta, source, target}, 'Same source and target');
       if (perform) {
         await sourceGH.issues.createComment({
