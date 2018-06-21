@@ -267,7 +267,7 @@ module.exports = class Move {
         body:
           `*${issueAuthorMention} commented on ${issueCreatedAt} UTC:*\n\n` +
           `${this.getMarkdown(sourceIssueData.body_html)}\n\n` +
-          `*This issue was moved by ${cmdAuthorMention} from ${sourceUrl}.*`
+          `*This issue was moved by ${cmdAuthorMention} from ${sourceUrl}*`
       })).data.number;
     }
 
@@ -332,7 +332,7 @@ module.exports = class Move {
         try {
           await sourceGh.issues.createComment({
             ...source,
-            body: `This issue was moved by ${cmdAuthorMention} to ${targetUrl}.`
+            body: `This issue was moved by ${cmdAuthorMention} to ${targetUrl}`
           });
         } catch (e) {
           if (e.code !== 403) {
