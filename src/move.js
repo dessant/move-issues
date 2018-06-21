@@ -332,7 +332,7 @@ module.exports = class Move {
         try {
           await sourceGh.issues.createComment({
             ...source,
-            body: `This issue was moved by ${cmdAuthorMention} to ${targetUrl}.`
+            body: `This issue was moved by ${cmdAuthorMention} to ${targetUrl}`
           });
         } catch (e) {
           if (e.code !== 403) {
