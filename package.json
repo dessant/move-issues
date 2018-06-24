@@ -22,10 +22,10 @@
     "src"
   ],
   "dependencies": {
-    "joi": "^13.3.0",
+    "joi": "^13.4.0",
     "moment": "^2.22.2",
     "probot": "^6.2.0",
-    "probot-commands": "1.0.1",
+    "probot-commands": "1.1.0",
     "probot-config": "^0.1.0",
     "to-markdown": "^3.1.1",
     "uuid": "^3.2.1"
