@@ -1,13 +1,12 @@
 const moment = require('moment');
 const toMarkdown = require('to-markdown');
-const uuidV4 = require('uuid/v4');
 
 module.exports = class Move {
-  constructor(robot, context, config, command, appUrl) {
+  constructor(robot, context, config, logger, command, appUrl) {
     this.robot = robot;
     this.context = context;
     this.config = config;
-    this.log = robot.log;
+    this.log = logger;
     this.arguments = command.arguments || '';
     this.appUrl = appUrl;
   }
@@ -85,7 +84,6 @@ module.exports = class Move {
       aliases
     } = this.config;
 
-    const meta = {task: uuidV4(), perform};
     const source = this.context.issue();
     const cmdUser = payload.comment.user.login;
     const cmdCommentId = payload.comment.id;
@@ -93,11 +91,11 @@ module.exports = class Move {
 
     this.log.info(
       {
-        ...meta,
         source,
         cmdUser,
         cmdCommentId,
-        arguments: this.arguments.substring(0, 200)
+        arguments: this.arguments.substring(0, 200),
+        perform
       },
       'Command received'
     );
@@ -108,7 +106,7 @@ module.exports = class Move {
       username: cmdUser
     })).data.permission;
     if (!['write', 'admin'].includes(sourcePermission)) {
-      this.log.warn({...meta, source, cmdUser}, 'No user permission to source');
+      this.log.warn({source, cmdUser, perform}, 'No user permission to source');
       if (perform) {
         await sourceGh.issues.createComment({
           ...source,
@@ -129,12 +127,12 @@ module.exports = class Move {
     if (!target.repo || target.owner.length > 39 || target.repo.length > 100) {
       this.log.warn(
         {
-          ...meta,
           source,
           target,
           cmdUser,
           cmdCommentId,
-          arguments: this.arguments.substring(0, 200)
+          arguments: this.arguments.substring(0, 200),
+          perform
         },
         'Invalid command arguments'
       );
@@ -150,7 +148,7 @@ module.exports = class Move {
     }
 
     if (source.owner === target.owner && source.repo === target.repo) {
-      this.log.warn({...meta, source, target}, 'Same source and target');
+      this.log.warn({source, target, perform}, 'Same source and target');
       if (perform) {
         await sourceGH.issues.createComment({
           ...source,
@@ -177,7 +175,7 @@ module.exports = class Move {
       );
 
       if (!targetInstall) {
-        this.log.warn({...meta, target}, 'No app permission to target');
+        this.log.warn({target, perform}, 'No app permission to target');
         if (perform) {
           await sourceGh.issues.createComment({
             ...source,
@@ -199,7 +197,7 @@ module.exports = class Move {
       targetRepoData = (await targetGh.repos.get(target)).data;
     } catch (e) {
       if (e.code === 404) {
-        this.log.warn({...meta, target}, 'Missing target');
+        this.log.warn({target, perform}, 'Missing target');
         if (perform) {
           await sourceGh.issues.createComment({
             ...source,
@@ -212,7 +210,7 @@ module.exports = class Move {
     }
 
     if (!targetRepoData.has_issues || targetRepoData.archived) {
-      this.log.warn({...meta, target}, 'Issues disabled for target');
+      this.log.warn({target, perform}, 'Issues disabled for target');
       if (perform) {
         await sourceGh.issues.createComment({
           ...source,
@@ -233,7 +231,7 @@ module.exports = class Move {
       })).data.permission;
     } catch (e) {
       if (e.code === 403) {
-        this.log.warn({...meta, target}, 'No app permission to target');
+        this.log.warn({target, perform}, 'No app permission to target');
         if (perform) {
           await sourceGh.issues.createComment({
             ...source,
@@ -251,7 +249,7 @@ module.exports = class Move {
       (source.owner !== target.owner || targetRepoData.private) &&
       !['write', 'admin'].includes(targetPermission)
     ) {
-      this.log.warn({...meta, target, cmdUser}, 'No user permission to target');
+      this.log.warn({target, cmdUser, perform}, 'No user permission to target');
       if (perform) {
         await sourceGh.issues.createComment({
           ...source,
@@ -272,7 +270,7 @@ module.exports = class Move {
 
     const cmdAuthorMention = this.getAuthorMention(cmdUser);
 
-    this.log.info({...meta, source, target}, 'Moving issue');
+    this.log.info({source, target, perform}, 'Moving issue');
     if (perform) {
       const issueAuthorMention = this.getAuthorMention(
         issueAuthor,
@@ -289,7 +287,7 @@ module.exports = class Move {
           `${source.owner}/${source.repo}/issues/${source.number}.*`
       })).data.number;
     }
-    this.log.info({...meta, target}, 'Issue created');
+    this.log.info({target, perform}, 'Issue created');
 
     await sourceGh.paginate(
       sourceGh.issues.getComments({
@@ -309,10 +307,10 @@ module.exports = class Move {
 
           this.log.info(
             {
-              ...meta,
               source,
               target,
-              sourceCommentId: comment.id
+              sourceCommentId: comment.id,
+              perform
             },
             'Moving comment'
           );
@@ -332,11 +330,11 @@ module.exports = class Move {
           }
           this.log.info(
             {
-              ...meta,
               source,
               target,
               sourceCommentId: comment.id,
-              targetCommentId
+              targetCommentId,
+              perform
             },
             'Comment created'
           );
@@ -346,7 +344,7 @@ module.exports = class Move {
 
     if (!this.issueLocked) {
       if (deleteCommand && !isCmdCommentContent) {
-        this.log.info({...meta, source, cmdCommentId}, 'Deleting command');
+        this.log.info({source, cmdCommentId, perform}, 'Deleting command');
         if (perform) {
           try {
             await sourceGh.issues.deleteComment({
@@ -362,7 +360,7 @@ module.exports = class Move {
         }
       }
 
-      this.log.info({...meta, source, target}, 'Move completed');
+      this.log.info({source, target, perform}, 'Move completed');
       if (perform) {
         try {
           await sourceGh.issues.createComment({
@@ -380,14 +378,14 @@ module.exports = class Move {
     }
 
     if (closeSourceIssue && this.issueOpen) {
-      this.log.info({...meta, source}, 'Closing');
+      this.log.info({source, perform}, 'Closing');
       if (perform) {
         await sourceGh.issues.edit({...source, state: 'closed'});
       }
     }
 
     if (lockSourceIssue && !this.issueLocked) {
-      this.log.info({...meta, source}, 'Locking');
+      this.log.info({source, perform}, 'Locking');
       if (perform) {
         await sourceGh.issues.lock(source);
       }
