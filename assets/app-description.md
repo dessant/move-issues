@@ -11,7 +11,10 @@ A GitHub App that moves issues between repositories.
 2. Create `.github/move.yml` in the source repository based on the template below
 3. Move an issue by creating a comment with this command: `/move to <repo>`
 
-Users must have write access to the source and target repositories in order to move issues.
+Users must have the following permissions in order to move issues:
+
+* Write access to the source repository
+* Write access to the target repository (when the source or target repository is private, or when they have different owners)
 
 #### Configuration
 

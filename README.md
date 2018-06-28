@@ -23,11 +23,11 @@ or [Bitcoin](https://goo.gl/uJUAaU).
 2. Create `.github/move.yml` in the source repository based on the template below
 3. Move an issue by creating a comment with this command: `/move to <repo>`
 
-Users must have certain permissions in order to move issues:
+Users must have the following permissions in order to move issues:
 
 * Write access to the source repository
-* Write access to the target repository when the source and target repositories
-  have different owners, or when the target repository is private
+* Write access to the target repository (when the source or target repository
+  is private, or when they have different owners)
 
 #### Configuration
 

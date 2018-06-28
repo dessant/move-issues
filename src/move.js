@@ -158,83 +158,16 @@ module.exports = class Move {
       return;
     }
 
-    let targetGh;
-    if (source.owner !== target.owner) {
-      const appGh = await this.robot.auth();
-
-      let [targetInstall] = await appGh.paginate(
-        appGh.apps.getInstallations({per_page: 100}),
-        (response, done) => {
-          for (const installation of response.data) {
-            if (installation.account.login === target.owner) {
-              done();
-              return installation.id;
-            }
-          }
-        }
-      );
-
-      if (!targetInstall) {
-        this.log.warn({target, perform}, 'No app permission to target');
-        if (perform) {
-          await sourceGh.issues.createComment({
-            ...source,
-            body:
-              `⚠️ The [GitHub App](${this.appUrl}) ` +
-              'must be installed for the target repository.'
-          });
-        }
-        return;
-      }
-
-      targetGh = await this.robot.auth(targetInstall);
-    } else {
-      targetGh = sourceGh;
-    }
-
-    let targetRepoData;
+    let targetInstall;
+    const appGh = await this.robot.auth();
     try {
-      targetRepoData = (await targetGh.repos.get(target)).data;
+      targetInstall = (await appGh.apps.findRepoInstallation(target)).data.id;
     } catch (e) {
       if (e.code === 404) {
         this.log.warn({target, perform}, 'Missing target');
         if (perform) {
           await sourceGh.issues.createComment({
             ...source,
-            body: '⚠️ The target repository does not exist.'
-          });
-        }
-        return;
-      }
-      throw e;
-    }
-
-    if (!targetRepoData.has_issues || targetRepoData.archived) {
-      this.log.warn({target, perform}, 'Issues disabled for target');
-      if (perform) {
-        await sourceGh.issues.createComment({
-          ...source,
-          body:
-            '⚠️ The target repository must have issues enabled ' +
-            'and it must not be archived.'
-        });
-      }
-      return;
-    }
-
-    let targetPermission;
-    try {
-      targetPermission = (await targetGh.repos.reviewUserPermissionLevel({
-        owner: target.owner,
-        repo: target.repo,
-        username: cmdUser
-      })).data.permission;
-    } catch (e) {
-      if (e.code === 403) {
-        this.log.warn({target, perform}, 'No app permission to target');
-        if (perform) {
-          await sourceGh.issues.createComment({
-            ...source,
             body:
               `⚠️ The [GitHub App](${this.appUrl}) ` +
               'must be installed for the target repository.'
@@ -245,18 +178,61 @@ module.exports = class Move {
       throw e;
     }
 
-    if (
-      (source.owner !== target.owner || targetRepoData.private) &&
-      !['write', 'admin'].includes(targetPermission)
-    ) {
-      this.log.warn({target, cmdUser, perform}, 'No user permission to target');
+    let targetGh;
+    if (source.owner !== target.owner) {
+      targetGh = await this.robot.auth(targetInstall);
+    } else {
+      targetGh = sourceGh;
+    }
+
+    const targetRepoData = (await targetGh.repos.get(target)).data;
+
+    if (!targetRepoData.has_issues) {
+      this.log.warn({target, perform}, 'Issues disabled for target');
       if (perform) {
         await sourceGh.issues.createComment({
           ...source,
-          body: '⚠️ You must have write permission for the target repository.'
+          body: '⚠️ Issues must be enabled for the target repository.'
         });
       }
       return;
+    }
+
+    if (targetRepoData.archived) {
+      this.log.warn({target, perform}, 'Archived target');
+      if (perform) {
+        await sourceGh.issues.createComment({
+          ...source,
+          body: '⚠️ The target repository must not be archived.'
+        });
+      }
+      return;
+    }
+
+    if (
+      source.owner !== target.owner ||
+      payload.repository.private ||
+      targetRepoData.private
+    ) {
+      const targetPermission = (await targetGh.repos.reviewUserPermissionLevel({
+        owner: target.owner,
+        repo: target.repo,
+        username: cmdUser
+      })).data.permission;
+
+      if (!['write', 'admin'].includes(targetPermission)) {
+        this.log.warn(
+          {target, cmdUser, perform},
+          'No user permission to target'
+        );
+        if (perform) {
+          await sourceGh.issues.createComment({
+            ...source,
+            body: '⚠️ You must have write permission for the target repository.'
+          });
+        }
+        return;
+      }
     }
 
     const sourceIssueData = (await sourceGh.issues.get({
