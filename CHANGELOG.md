@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.4.0"></a>
+# [0.4.0](https://github.com/dessant/move-issues/compare/v0.3.4...v0.4.0) (2018-06-29)
+
+
+### Bug Fixes
+
+* also check owner when determining if source and target are the same ([07912e5](https://github.com/dessant/move-issues/commit/07912e5))
+* avoid fetching config for ignored events ([1f88e2b](https://github.com/dessant/move-issues/commit/1f88e2b))
+* explicitly link issues ([94e13ca](https://github.com/dessant/move-issues/commit/94e13ca)), closes [#6](https://github.com/dessant/move-issues/issues/6)
+* move issues between private repositories ([b63f555](https://github.com/dessant/move-issues/commit/b63f555))
+* pass more info to logger ([728b525](https://github.com/dessant/move-issues/commit/728b525))
+
+
+### Features
+
+* extend settings from a different repository ([103963d](https://github.com/dessant/move-issues/commit/103963d))
+* mention teams in issue content ([1d316e1](https://github.com/dessant/move-issues/commit/1d316e1))
+
+
+### BREAKING CHANGES
+
+* team mentions need read access to Organization members
+* read-only access to repo metadata is required for
+moving issues between private repositories
+
+
+
 <a name="0.3.4"></a>
 ## [0.3.4](https://github.com/dessant/move-issues/compare/v0.3.3...v0.3.4) (2018-06-06)
 
