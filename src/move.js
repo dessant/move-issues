@@ -63,11 +63,14 @@ module.exports = class Move {
           );
         },
         replacement: (content, node) => {
-          if (
-            this.config.keepContentMentions &&
-            /user-mention/.test(node.className)
-          ) {
-            return content;
+          if (this.config.keepContentMentions) {
+            if (/user-mention/.test(node.className)) {
+              return content;
+            }
+            // team mentions only work within the same org
+            if (this.sameOwner) {
+              return content;
+            }
           }
           return `[${content.replace(/^@/, '')}](${node.href})`;
         }
@@ -153,10 +156,11 @@ module.exports = class Move {
       return;
     }
 
-    if (source.owner === target.owner && source.repo === target.repo) {
+    this.sameOwner = source.owner === target.owner;
+    if (this.sameOwner && source.repo === target.repo) {
       this.log.warn({source, target, perform}, 'Same source and target');
       if (perform) {
-        await sourceGH.issues.createComment({
+        await sourceGh.issues.createComment({
           ...source,
           body: '⚠️ The source and target repository must be different.'
         });
@@ -185,7 +189,7 @@ module.exports = class Move {
     }
 
     let targetGh;
-    if (source.owner !== target.owner) {
+    if (!this.sameOwner) {
       targetGh = await this.robot.auth(targetInstall);
     } else {
       targetGh = sourceGh;
@@ -216,7 +220,7 @@ module.exports = class Move {
     }
 
     if (
-      source.owner !== target.owner ||
+      !this.sameOwner ||
       payload.repository.private ||
       targetRepoData.private
     ) {

@@ -8,6 +8,7 @@ This app requires these **Permissions & events** for the GitHub App:
 - Issues - **Read & Write**
   - [x] Check the box for **Issue comment** events
 - Repository metadata - **Read-only**
+- Organization members - **Read-only**
 - Single File - **Read-only**
   - Path: `.github/move.yml`
 
