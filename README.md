@@ -1,5 +1,7 @@
 # Move Issues
 
+[![npm](https://img.shields.io/npm/v/move-issues.svg?style=flat-square&colorB=007EC6)](https://www.npmjs.com/package/move-issues)
+
 Move Issues is a GitHub App built with [Probot](https://github.com/probot/probot)
 that moves issues between repositories.
 
