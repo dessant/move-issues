@@ -10,3 +10,8 @@ This app requires these **Permissions & events** for the GitHub App:
 - Repository metadata - **Read-only**
 - Single File - **Read-only**
   - Path: `.github/move.yml`
+
+Optional **Permissions & events**:
+
+- Repository contents - **Read-only** (enables autolinking for private
+  repositories)

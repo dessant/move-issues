@@ -11,7 +11,7 @@ module.exports = class Move {
     this.appUrl = appUrl;
   }
 
-  getAuthorMention(user, mention = false) {
+  getAuthorLink(user, mention = false) {
     const baseUrl = 'https://github.com';
     if (user.endsWith('[bot]')) {
       return `[${user}](${baseUrl}/apps/${user.replace('[bot]', '')})`;
@@ -20,6 +20,12 @@ module.exports = class Move {
       return `@${user}`;
     }
     return `[${user}](${baseUrl}/${user})`;
+  }
+
+  getIssueLink(issue) {
+    const repo = `${issue.owner}/${issue.repo}`;
+    const number = issue.number;
+    return `[${repo}#${number}](https://github.com/${repo}/issues/${number})`;
   }
 
   get issueOpen() {
@@ -244,11 +250,11 @@ module.exports = class Move {
       'MMM D, YYYY, h:mm A'
     );
 
-    const cmdAuthorMention = this.getAuthorMention(cmdUser);
+    const cmdAuthorMention = this.getAuthorLink(cmdUser);
 
     this.log.info({source, target, perform}, 'Moving issue');
     if (perform) {
-      const issueAuthorMention = this.getAuthorMention(
+      const issueAuthorMention = this.getAuthorLink(
         issueAuthor,
         mentionAuthors
       );
@@ -260,7 +266,7 @@ module.exports = class Move {
           `*${issueAuthorMention} commented on ${issueCreatedAt} UTC:*\n\n` +
           `${this.getMarkdown(sourceIssueData.body_html)}\n\n` +
           `*This issue was moved by ${cmdAuthorMention} from ` +
-          `${source.owner}/${source.repo}/issues/${source.number}.*`
+          `${this.getIssueLink(source)}.*`
       })).data.number;
     }
     this.log.info({target, perform}, 'Issue created');
@@ -293,7 +299,7 @@ module.exports = class Move {
 
           let targetCommentId;
           if (perform) {
-            const commentAuthorMention = this.getAuthorMention(
+            const commentAuthorMention = this.getAuthorLink(
               commentAuthor,
               mentionAuthors
             );
@@ -343,7 +349,7 @@ module.exports = class Move {
             ...source,
             body:
               `This issue was moved by ${cmdAuthorMention} to ` +
-              `${target.owner}/${target.repo}/issues/${target.number}.`
+              `${this.getIssueLink(target)}.`
           });
         } catch (e) {
           if (e.code !== 403) {
