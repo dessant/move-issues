@@ -1,6 +1,7 @@
 const uuidV4 = require('uuid/v4');
 const commands = require('probot-commands');
 const getMergedConfig = require('probot-config');
+const sendMessage = require('probot-messages');
 
 const App = require('./move');
 const schema = require('./schema');
@@ -42,6 +43,16 @@ module.exports = async robot => {
       config = value;
     } catch (err) {
       log.warn({err: new Error(err), repo, file}, 'Invalid config');
+      if (['YAMLException', 'ValidationError'].includes(err.name)) {
+        await sendMessage(
+          robot,
+          context,
+          '[{appName}] Configuration error',
+          '[{appName}]({appUrl}) has encountered a configuration error in ' +
+            `\`${file}\`.\n\`\`\`\n${err.toString()}\n\`\`\``,
+          {update: 'The configuration error is still occurring.'}
+        );
+      }
     }
 
     return config;
