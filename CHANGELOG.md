@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="0.6.0"></a>
+# [0.6.0](https://github.com/dessant/move-issues/compare/v0.5.0...v0.6.0) (2018-09-19)
+
+
+### Features
+
+* move labels that also exist on the target repository ([cb979f6](https://github.com/dessant/move-issues/commit/cb979f6)), closes [#5](https://github.com/dessant/move-issues/issues/5)
+
+
+### BREAKING CHANGES
+
+* labels are also applied for the target issue
+
+
+
 <a name="0.5.0"></a>
 # [0.5.0](https://github.com/dessant/move-issues/compare/v0.4.0...v0.5.0) (2018-07-23)
 
