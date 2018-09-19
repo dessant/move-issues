@@ -82,6 +82,28 @@ module.exports = class Move {
     });
   }
 
+  async getCommonLabels(sourceGh, targetGh, source, target) {
+    let commonLabels = [];
+
+    const sourceLabels = await sourceGh.paginate(
+      sourceGh.issues.getIssueLabels({...source, per_page: 100}),
+      res => res.data.map(item => item.name)
+    );
+
+    if (sourceLabels.length) {
+      const targetLabels = await targetGh.paginate(
+        targetGh.issues.getLabels({...target, per_page: 100}),
+        res => res.data.map(item => item.name)
+      );
+
+      if (targetLabels.length) {
+        commonLabels = sourceLabels.filter(item => targetLabels.includes(item));
+      }
+    }
+
+    return commonLabels;
+  }
+
   async command() {
     const {payload, github: sourceGh} = this.context;
     const {
@@ -90,6 +112,7 @@ module.exports = class Move {
       lockSourceIssue,
       deleteCommand,
       mentionAuthors,
+      moveLabels,
       aliases
     } = this.config;
 
@@ -254,6 +277,16 @@ module.exports = class Move {
       'MMM D, YYYY, h:mm A'
     );
 
+    let commonLabels = [];
+    if (moveLabels) {
+      commonLabels = await this.getCommonLabels(
+        sourceGh,
+        targetGh,
+        source,
+        target
+      );
+    }
+
     const cmdAuthorMention = this.getAuthorLink(cmdUser);
 
     this.log.info({source, target, perform}, 'Moving issue');
@@ -270,7 +303,8 @@ module.exports = class Move {
           `*${issueAuthorMention} commented on ${issueCreatedAt} UTC:*\n\n` +
           `${this.getMarkdown(sourceIssueData.body_html)}\n\n` +
           `*This issue was moved by ${cmdAuthorMention} from ` +
-          `${this.getIssueLink(source)}.*`
+          `${this.getIssueLink(source)}.*`,
+        labels: commonLabels
       })).data.number;
     }
     this.log.info({target, perform}, 'Issue created');

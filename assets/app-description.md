@@ -38,6 +38,9 @@ mentionAuthors: true
 # Preserve mentions in the issue content
 keepContentMentions: false
 
+# Move labels that also exist on the target repository
+moveLabels: true
+
 # Set custom aliases for targets
 # aliases:
 #   r: repo

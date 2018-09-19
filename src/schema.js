@@ -23,6 +23,10 @@ const schema = Joi.object().keys({
     .default(false)
     .description('Preserve mentions in the issue content'),
 
+  moveLabels: Joi.boolean()
+    .default(true)
+    .description('Move labels that also exist on the target repository'),
+
   aliases: Joi.object()
     .pattern(/.+/, Joi.string())
     .default({})
