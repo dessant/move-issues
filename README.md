@@ -15,8 +15,8 @@ that moves issues between repositories.
 
 The continued development of Move Issues is made possible
 thanks to the support of awesome backers. If you'd like to join them,
-please consider contributing with [Patreon](https://goo.gl/qRhKSW),
-[PayPal](https://goo.gl/5FnBaw) or [Bitcoin](https://goo.gl/uJUAaU).
+please consider contributing with [Patreon](https://www.patreon.com/dessant),
+[PayPal](https://www.paypal.me/ArminSebastian) or [Bitcoin](https://goo.gl/uJUAaU).
 
 ## Usage
 
@@ -31,14 +31,18 @@ Users must have the following permissions in order to move issues:
 * Write access to the target repository (when the source or target repository
   is private, or when they have different owners)
 
+⚠️ **If possible, install the app only for select repositories.
+Do not leave the `All repositories` option selected, unless you intend
+to use the app for all current and future repositories.**
+
 #### Configuration
 
-Create `.github/move.yml` in the default branch of the source repository
-to enable the app. The file can be empty, or it can override any of these
-default settings:
+Create `.github/move.yml` in the default branch to enable the app,
+or add it at the same file path to a special repository named `.github`.
+The file can be empty, or it can override any of these default settings:
 
 ```yaml
-# Configuration for move-issues - https://github.com/dessant/move-issues
+# Configuration for Move Issues - https://github.com/dessant/move-issues
 
 # Delete the command comment when it contains no other content
 deleteCommand: true
@@ -89,5 +93,7 @@ instance of this app.
 
 ## License
 
-Move Issues is released under the terms of the MIT License.
-Please refer to the [LICENSE](LICENSE) file.
+Copyright (c) 2017-2019 Armin Sebastian
+
+This software is released under the terms of the MIT License.
+See the [LICENSE](LICENSE) file for further information.
