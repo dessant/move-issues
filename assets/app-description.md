@@ -20,7 +20,7 @@ Users must have the following permissions in order to move issues:
 
 #### Configuration
 
-Create `.github/move.yml` in the default branch to enable the app, or add it at the same file path to a special repository named `.github`. The file can be empty, or it can override any of these default settings:
+Create `.github/move.yml` in the default branch to enable the app, or add it at the same file path to a repository named `.github`. The file can be empty, or it can override any of these default settings:
 
 ```yaml
 # Configuration for Move Issues - https://github.com/dessant/move-issues
