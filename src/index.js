@@ -8,7 +8,10 @@ const schema = require('./schema');
 
 module.exports = async robot => {
   const github = await robot.auth();
-  const {name: appName, html_url: appUrl} = (await github.apps.get({})).data;
+  const {
+    name: appName,
+    html_url: appUrl
+  } = (await github.apps.getAuthenticated()).data;
 
   commands(robot, 'move', async (context, command) => {
     if (context.isBot || context.payload.issue.pull_request) {

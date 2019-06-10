@@ -24,7 +24,7 @@ module.exports = class Move {
 
   getIssueLink(issue) {
     const repo = `${issue.owner}/${issue.repo}`;
-    const number = issue.number;
+    const number = issue.issue_number;
     return `[${repo}#${number}](https://github.com/${repo}/issues/${number})`;
   }
 
@@ -86,13 +86,19 @@ module.exports = class Move {
     let commonLabels = [];
 
     const sourceLabels = await sourceGh.paginate(
-      sourceGh.issues.getIssueLabels({...source, per_page: 100}),
+      sourceGh.issues.listLabelsOnIssue.endpoint.merge({
+        ...source,
+        per_page: 100
+      }),
       res => res.data.map(item => item.name)
     );
 
     if (sourceLabels.length) {
       const targetLabels = await targetGh.paginate(
-        targetGh.issues.getLabels({...target, per_page: 100}),
+        targetGh.issues.listLabelsForRepo.endpoint.merge({
+          ...target,
+          per_page: 100
+        }),
         res => res.data.map(item => item.name)
       );
 
@@ -116,7 +122,9 @@ module.exports = class Move {
       aliases
     } = this.config;
 
-    const source = this.context.issue();
+    const source = this.context.repo({
+      issue_number: this.context.issue().number
+    });
     const cmdUser = payload.comment.user.login;
     const cmdCommentId = payload.comment.id;
     const isCmdCommentContent = payload.comment.body.trim().includes('\n');
@@ -132,11 +140,13 @@ module.exports = class Move {
       'Command received'
     );
 
-    const sourcePermission = (await sourceGh.repos.reviewUserPermissionLevel({
-      owner: source.owner,
-      repo: source.repo,
-      username: cmdUser
-    })).data.permission;
+    const sourcePermission = (await sourceGh.repos.getCollaboratorPermissionLevel(
+      {
+        owner: source.owner,
+        repo: source.repo,
+        username: cmdUser
+      }
+    )).data.permission;
     if (!['write', 'admin'].includes(sourcePermission)) {
       this.log.warn({source, cmdUser, perform}, 'No user permission to source');
       if (perform) {
@@ -194,7 +204,8 @@ module.exports = class Move {
     let targetInstall;
     const appGh = await this.robot.auth();
     try {
-      targetInstall = (await appGh.apps.findRepoInstallation(target)).data.id;
+      targetInstall = (await appGh.apps.getRepoInstallation({...target})).data
+        .id;
     } catch (e) {
       if (e.code === 404) {
         this.log.warn({target, perform}, 'Missing target');
@@ -218,7 +229,7 @@ module.exports = class Move {
       targetGh = sourceGh;
     }
 
-    const targetRepoData = (await targetGh.repos.get(target)).data;
+    const targetRepoData = (await targetGh.repos.get({...target})).data;
 
     if (!targetRepoData.has_issues) {
       this.log.warn({target, perform}, 'Issues disabled for target');
@@ -247,11 +258,13 @@ module.exports = class Move {
       payload.repository.private ||
       targetRepoData.private
     ) {
-      const targetPermission = (await targetGh.repos.reviewUserPermissionLevel({
-        owner: target.owner,
-        repo: target.repo,
-        username: cmdUser
-      })).data.permission;
+      const targetPermission = (await targetGh.repos.getCollaboratorPermissionLevel(
+        {
+          owner: target.owner,
+          repo: target.repo,
+          username: cmdUser
+        }
+      )).data.permission;
 
       if (!['write', 'admin'].includes(targetPermission)) {
         this.log.warn(
@@ -295,7 +308,7 @@ module.exports = class Move {
         issueAuthor,
         mentionAuthors
       );
-      target.number = (await targetGh.issues.create({
+      target.issue_number = (await targetGh.issues.create({
         owner: target.owner,
         repo: target.repo,
         title: sourceIssueData.title,
@@ -310,7 +323,7 @@ module.exports = class Move {
     this.log.info({target, perform}, 'Issue created');
 
     await sourceGh.paginate(
-      sourceGh.issues.getComments({
+      sourceGh.issues.listComments.endpoint.merge({
         ...source,
         per_page: 100,
         headers: {accept: 'application/vnd.github.v3.html+json'}
@@ -370,7 +383,7 @@ module.exports = class Move {
             await sourceGh.issues.deleteComment({
               owner: source.owner,
               repo: source.repo,
-              id: cmdCommentId
+              comment_id: cmdCommentId
             });
           } catch (e) {
             if (![403, 404].includes(e.code)) {
@@ -400,7 +413,7 @@ module.exports = class Move {
     if (closeSourceIssue && this.issueOpen) {
       this.log.info({source, perform}, 'Closing');
       if (perform) {
-        await sourceGh.issues.edit({...source, state: 'closed'});
+        await sourceGh.issues.update({...source, state: 'closed'});
       }
     }
 
