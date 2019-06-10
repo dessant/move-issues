@@ -1,6 +1,20 @@
-# Change Log
+# Changelog
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [1.0.0](https://github.com/dessant/move-issues/compare/v0.6.2...v1.0.0) (2019-06-10)
+
+
+### Features
+
+* update dependencies ([a2334cf](https://github.com/dessant/move-issues/commit/a2334cf))
+
+
+### BREAKING CHANGES
+
+* probot < 9.2.13 no longer supported.
+
+
 
 <a name="0.6.2"></a>
 ## [0.6.2](https://github.com/dessant/move-issues/compare/v0.6.1...v0.6.2) (2019-01-20)
