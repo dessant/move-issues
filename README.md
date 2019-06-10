@@ -15,8 +15,10 @@ that moves issues between repositories.
 
 The continued development of Move Issues is made possible
 thanks to the support of awesome backers. If you'd like to join them,
-please consider contributing with [Patreon](https://www.patreon.com/dessant),
-[PayPal](https://www.paypal.me/ArminSebastian) or [Bitcoin](https://goo.gl/uJUAaU).
+please consider contributing with
+[Patreon](https://armin.dev/go/patreon?pr=move-issues&src=repo),
+[PayPal](https://armin.dev/go/paypal?pr=move-issues&src=repo) or
+[Bitcoin](https://armin.dev/go/bitcoin?pr=move-issues&src=repo).
 
 ## Usage
 
@@ -31,7 +33,7 @@ Users must have the following permissions in order to move issues:
 * Write access to the target repository (when the source or target repository
   is private, or when they have different owners)
 
-⚠️ **If possible, install the app only for select repositories.
+**If possible, install the app only for select repositories.
 Do not leave the `All repositories` option selected, unless you intend
 to use the app for all current and future repositories.**
 

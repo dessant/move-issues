@@ -5,6 +5,10 @@ A GitHub App that moves issues between repositories.
   <img width="360" src="https://raw.githubusercontent.com/dessant/move-issues/master/assets/target-issue.png">
 </p>
 
+## Supporting the Project
+
+The continued development of Move Issues is made possible thanks to the support of awesome backers. If you'd like to join them, please consider contributing with [Patreon](https://armin.dev/go/patreon?pr=move-issues&src=app), [PayPal](https://armin.dev/go/paypal?pr=move-issues&src=app) or [Bitcoin](https://armin.dev/go/bitcoin?pr=move-issues&src=app).
+
 ## Usage
 
 1. **[Install the GitHub App](https://github.com/apps/move)** for all source and target repositories
@@ -16,7 +20,7 @@ Users must have the following permissions in order to move issues:
 * Write access to the source repository
 * Write access to the target repository (when the source or target repository is private, or when they have different owners)
 
-⚠️ **If possible, install the app only for select repositories. Do not leave the `All repositories` option selected, unless you intend to use the app for all current and future repositories.**
+**If possible, install the app only for select repositories. Do not leave the `All repositories` option selected, unless you intend to use the app for all current and future repositories.**
 
 #### Configuration
 
@@ -66,7 +70,3 @@ moveLabels: true
 /move repo
 /move owner/repo
 ```
-
-## Supporting the Project
-
-The continued development of Move Issues is made possible thanks to the support of awesome backers. If you'd like to join them, please consider contributing with [Patreon](https://www.patreon.com/dessant), [PayPal](https://www.paypal.me/ArminSebastian) or [Bitcoin](https://goo.gl/uJUAaU).
