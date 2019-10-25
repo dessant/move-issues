@@ -1,6 +1,5 @@
 const uuidV4 = require('uuid/v4');
 const commands = require('probot-commands');
-const getMergedConfig = require('probot-config');
 const sendMessage = require('probot-messages');
 
 const App = require('./move');
@@ -35,7 +34,7 @@ module.exports = async robot => {
     let config;
     const repo = context.repo();
     try {
-      let repoConfig = await getMergedConfig(context, file);
+      let repoConfig = await context.config(file);
       if (!repoConfig) {
         repoConfig = {perform: false};
       }
