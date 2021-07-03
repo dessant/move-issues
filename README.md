@@ -1,7 +1,8 @@
 # Move Issues
 
-[![Build Status](https://img.shields.io/travis/com/dessant/move-issues/master.svg)](https://travis-ci.com/dessant/move-issues)
 [![Version](https://img.shields.io/npm/v/move-issues.svg?colorB=007EC6)](https://www.npmjs.com/package/move-issues)
+
+> This project is no longer maintained.
 
 Move Issues is a GitHub App built with [Probot](https://github.com/probot/probot)
 that moves issues between repositories.
@@ -22,7 +23,7 @@ please consider contributing with
 
 ## Usage
 
-1. **[Install the GitHub App](https://github.com/apps/move)**
+1. **[Install the GitHub App]()**
    for all source and target repositories
 2. Create `.github/move.yml` in the source repository based on the template below
 3. Move an issue by creating a comment with this command: `/move to <repo>`
@@ -95,7 +96,7 @@ instance of this app.
 
 ## License
 
-Copyright (c) 2017-2019 Armin Sebastian
+Copyright (c) 2017-2021 Armin Sebastian
 
 This software is released under the terms of the MIT License.
 See the [LICENSE](LICENSE) file for further information.

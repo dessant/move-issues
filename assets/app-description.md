@@ -5,13 +5,9 @@ A GitHub App that moves issues between repositories.
   <img width="360" src="https://raw.githubusercontent.com/dessant/move-issues/master/assets/target-issue.png">
 </p>
 
-## Supporting the Project
-
-The continued development of Move Issues is made possible thanks to the support of awesome backers. If you'd like to join them, please consider contributing with [Patreon](https://armin.dev/go/patreon?pr=move-issues&src=app), [PayPal](https://armin.dev/go/paypal?pr=move-issues&src=app) or [Bitcoin](https://armin.dev/go/bitcoin?pr=move-issues&src=app).
-
 ## Usage
 
-1. **[Install the GitHub App](https://github.com/apps/move)** for all source and target repositories
+1. **[Install the GitHub App]()** for all source and target repositories
 2. Create `.github/move.yml` in the source repository based on the template below
 3. Move an issue by creating a comment with this command: `/move to <repo>`
 
