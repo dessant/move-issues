@@ -12,15 +12,6 @@ that moves issues between repositories.
   <img width="420" src="https://raw.githubusercontent.com/dessant/move-issues/master/assets/target-issue.png">
 </p>
 
-## Supporting the Project
-
-The continued development of Move Issues is made possible
-thanks to the support of awesome backers. If you'd like to join them,
-please consider contributing with
-[Patreon](https://armin.dev/go/patreon?pr=move-issues&src=repo),
-[PayPal](https://armin.dev/go/paypal?pr=move-issues&src=repo) or
-[Bitcoin](https://armin.dev/go/bitcoin?pr=move-issues&src=repo).
-
 ## Usage
 
 1. **[Install the GitHub App]()**
